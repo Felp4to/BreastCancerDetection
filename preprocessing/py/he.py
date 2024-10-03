@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 # of an image by redistributing the intensity values. The goal is to spread out the most
 # frequent intensity values over a wider range, making the image more clear and distinct
 # in terms of features.
-def apply_histogram_equalization(path, histogram):
+def apply_histogram_equalization(path, histogram, show_result):
 
     # read a image using imread
     img = cv2.imread(path,  cv2.IMREAD_GRAYSCALE)
@@ -16,8 +16,10 @@ def apply_histogram_equalization(path, histogram):
 
     # shows histogram and cdf
     if(histogram == 1): 
-        stamp_histogram(equalized)
         stamp_histogram(img)
+        stamp_histogram(equalized)
+    if(show_result):
+        show_difference(img, equalized)
 
     return equalized
 

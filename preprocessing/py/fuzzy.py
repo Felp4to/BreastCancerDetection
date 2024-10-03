@@ -74,6 +74,50 @@ def Infer(i, M, get_fuzzy_set=False):
     return np.average(x, weights=fuzzy_output)
 
 
+# fuzzy method
+def FuzzyContrastEnhance(path, show_result=0):
+
+    image = cv2.imread(path)
+    image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+
+    # Convert RGB to LAB
+    lab = cv2.cvtColor(image_rgb, cv2.COLOR_RGB2LAB)
+    
+    # Get L channel
+    l = lab[:, :, 0]
+    
+    # Calculate M value
+    M = np.mean(l)
+
+    M = 127                 # !?!?!?!? da vedere questo valore
+
+    if M < 128:
+        M = 127 - (127 - M)/2
+    else:
+        M = 128 + M/2
+        
+    # Precompute the fuzzy transform
+    x = list(range(-50,306))
+    FuzzyTransform = dict(zip(x,[Infer(np.array([i]), M) for i in x]))
+    
+    # Apply the transform to l channel
+    u, inv = np.unique(l, return_inverse = True)
+    l = np.array([FuzzyTransform[i] for i in u])[inv].reshape(l.shape)
+    
+    # Min-max scale the output L channel to fit (0, 255):
+    Min = np.min(l)
+    Max = np.max(l)
+    lab[:, :, 0] = (l - Min)/(Max - Min) * 255
+
+    # Convert LAB to RGB
+    lab_image = cv2.cvtColor(lab, cv2.COLOR_LAB2RGB)
+
+    # show images
+    if(show_result): show_difference(image_rgb, lab_image)
+
+    return lab_image
+
+
 # this function draws the curves of  the degrees of membership
 def plot_fuzzy_membership(M, ExtremelyDark, VeryDark, Dark, SlightlyDark, SlightlyBright, Bright, VeryBright, ExtremelyBright):
 
@@ -199,46 +243,15 @@ def plot_io_mapping(means=(64, 96, 128, 160, 192)):
 
 
 
-# fuzzy method
-def FuzzyContrastEnhance(path):
+def show_difference(img, fce):
+    plt.figure(figsize=(15, 10))
+    plt.subplot(2, 2, 1)
+    plt.imshow(img)
+    plt.title('Original Image')
 
-    image = cv2.imread(path)
-    image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-
-    # Convert RGB to LAB
-    lab = cv2.cvtColor(image_rgb, cv2.COLOR_RGB2LAB)
-    
-    # Get L channel
-    l = lab[:, :, 0]
-    
-    # Calculate M value
-    M = np.mean(l)
-    if M < 128:
-        M = 127 - (127 - M)/2
-    else:
-        M = 128 + M/2
-        
-    # Precompute the fuzzy transform
-    x = list(range(-50,306))
-    FuzzyTransform = dict(zip(x,[Infer(np.array([i]), M) for i in x]))
-    
-    # Apply the transform to l channel
-    u, inv = np.unique(l, return_inverse = True)
-    l = np.array([FuzzyTransform[i] for i in u])[inv].reshape(l.shape)
-    
-    # Min-max scale the output L channel to fit (0, 255):
-    Min = np.min(l)
-    Max = np.max(l)
-    lab[:, :, 0] = (l - Min)/(Max - Min) * 255
-    
-    # Convert LAB to RGB
-    return cv2.cvtColor(lab, cv2.COLOR_LAB2RGB)
-
-
-
-
-
-
+    plt.subplot(2, 2, 2)
+    plt.imshow(fce)
+    plt.title('Fuzzy Contrast Enhance')
 
 
 
