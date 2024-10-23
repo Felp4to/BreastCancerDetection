@@ -75,7 +75,7 @@ def Infer(i, M, get_fuzzy_set=False):
 
 
 # fuzzy method
-def FuzzyContrastEnhance(path, show_result=0):
+def FuzzyContrastEnhance(path, target_size=(50, 50, 3), show_result=0):
 
     image = cv2.imread(path)
     image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
@@ -112,8 +112,21 @@ def FuzzyContrastEnhance(path, show_result=0):
     # Convert LAB to RGB
     lab_image = cv2.cvtColor(lab, cv2.COLOR_LAB2RGB)
 
+    # resize
+    #lab_image = cv2.resize(lab_image, (target_size[1], target_size[0]))
+
+    # Ottieni le dimensioni dell'immagine
+    #height, width, channels = lab_image.shape
+
+    #resize
+    #clahe_img = cv2.resize(clahe_img, (target_size[1], target_size[0]))
+    if(target_size != None):
+        lab_image = cv2.resize(lab_image, (target_size[1], target_size[0]), interpolation=cv2.INTER_LINEAR)
+
     # show images
     if(show_result): show_difference(image_rgb, lab_image)
+
+    lab_image = lab_image / 255.0
 
     return lab_image
 
@@ -242,16 +255,20 @@ def plot_io_mapping(means=(64, 96, 128, 160, 192)):
     plt.show()  # Mostra il grafico
 
 
-
+# comparison between original and equalized image
 def show_difference(img, fce):
-    plt.figure(figsize=(15, 10))
-    plt.subplot(2, 2, 1)
-    plt.imshow(img)
+    # Imposta la figura per mostrare le immagini affiancate
+    plt.figure(figsize=(10, 5))
+
+    # Mostra l'immagine originale
+    plt.subplot(1, 2, 1)
+    plt.imshow(img, cmap='gray')
     plt.title('Original Image')
+    plt.axis('off')
 
-    plt.subplot(2, 2, 2)
-    plt.imshow(fce)
-    plt.title('Fuzzy Contrast Enhance')
-
-
+    # Mostra l'immagine originale
+    plt.subplot(1, 2, 2)
+    plt.imshow(fce, cmap='gray')
+    plt.title('Denoised Image with fuzzy')
+    plt.axis('off')
 

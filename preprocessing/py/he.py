@@ -7,21 +7,40 @@ import matplotlib.pyplot as plt
 # of an image by redistributing the intensity values. The goal is to spread out the most
 # frequent intensity values over a wider range, making the image more clear and distinct
 # in terms of features.
-def apply_histogram_equalization(path, histogram, show_result):
+def apply_histogram_equalization(path, target_size, histogram=0, show_result=0):
 
-    # read a image using imread
-    img = cv2.imread(path,  cv2.IMREAD_GRAYSCALE)
-    # equalize image
-    equalized = cv2.equalizeHist(img)
+    # upload gray scale image
+    image = cv2.imread(path)
 
-    # shows histogram and cdf
-    if(histogram == 1): 
-        stamp_histogram(img)
-        stamp_histogram(equalized)
-    if(show_result):
-        show_difference(img, equalized)
+    # Convert the image from BGR to HSV color space
+    hsv_image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
-    return equalized
+    # Split into H, S, and V channels (we will apply equalization to the V channel)
+    h, s, v = cv2.split(hsv_image)
+    
+    # Apply global histogram equalization on the V (value/brightness) channel
+    v_hist_eq = cv2.equalizeHist(v)
+
+    # Merge the channels back
+    hsv_hist_eq = cv2.merge((h, s, v_hist_eq))
+
+    # Convert back to BGR color space
+    final_img_hsv = cv2.cvtColor(hsv_hist_eq, cv2.COLOR_HSV2BGR)
+
+    # Resize the image if a target size is provided
+    if target_size is not None:
+        final_img_hsv = cv2.resize(final_img_hsv, (target_size[1], target_size[0]), interpolation=cv2.INTER_LINEAR)
+
+    # Optionally show histograms for comparison
+    if histogram: 
+        stamp_histogram(image)
+        stamp_histogram(final_img_hsv)
+    
+    # Optionally show the original and processed image for comparison
+    if show_result:
+        show_difference(image, final_img_hsv)
+
+    return final_img_hsv
 
 
 # shows histogram and cdf (cumulative distribution function)
