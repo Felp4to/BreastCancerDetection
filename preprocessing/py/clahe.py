@@ -2,6 +2,11 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 
+#
+# clipLimit : this parameter sets the threshold for contrast limiting
+# tileGridSize : this parameter sets the number of tiles in the row and column (default 8 x 8)
+#
+
 
 # return equalized image with clahe method
 def apply_equalization_clahe(path, target_size, histogram=0, show_result=1, clipLimit=2.0, tileGridSize=(8, 8)):
@@ -37,7 +42,7 @@ def apply_equalization_clahe(path, target_size, histogram=0, show_result=1, clip
 
 
 # Funzione per applicare CLAHE a un'immagine a colori nello spazio Lab
-def apply_equalization_clahe_Lab(path, target_size, histogram=0, show_result=1, clipLimit=2.0, tileGridSize=(8, 8)):
+def apply_equalization_clahe_Lab(path, target_size, histogram=0, show_result=1, clipLimit=2.0, tileGridSize=(8, 8), threshold_high_light=255):
 
     # upload gray scale image
     image = cv2.imread(path)
@@ -46,35 +51,45 @@ def apply_equalization_clahe_Lab(path, target_size, histogram=0, show_result=1, 
     lab_image = cv2.cvtColor(image, cv2.COLOR_BGR2Lab)
     
     # Dividi l'immagine nei tre canali: L, a, b
-    l_channel, a_channel, b_channel = cv2.split(lab_image)
-    
-    # Crea l'oggetto CLAHE
-    clahe = cv2.createCLAHE(clipLimit, tileGridSize)
-    
-    # Applica CLAHE al canale di luminosità (L)
-    l_channel_clahe = clahe.apply(l_channel)
-    
-    # Unisci i canali modificati per ricostruire l'immagine Lab
-    lab_image_clahe = cv2.merge((l_channel_clahe, a_channel, b_channel))
-    
-    # Converti nuovamente l'immagine dallo spazio Lab allo spazio RGB
-    clahe_img = cv2.cvtColor(lab_image_clahe, cv2.COLOR_Lab2BGR)
+    l, a, b = cv2.split(lab_image)
 
-    # Ottieni le dimensioni dell'immagine
-    height, width, channels = image.shape
+    # Crea una maschera per le alte luci (ad es. luminanza > 180)
+    # La maschera sarà bianca (255) nelle aree luminose e nera (0) nelle altre
+    _, mask = cv2.threshold(l, threshold_high_light, 255, cv2.THRESH_BINARY)
+
+    # Inverti la maschera, in modo da selezionare solo le aree non luminose
+    mask_inv = cv2.bitwise_not(mask)
+
+    # Applica CLAHE solo nelle aree più scure (usando la maschera inversa)
+    clahe = cv2.createCLAHE(clipLimit, tileGridSize)
+    l_clahe = clahe.apply(l)
+
+    # Combina i risultati: CLAHE dove non ci sono alte luci, mantieni l'originale nelle alte luci
+    l_combined = cv2.bitwise_and(l, l, mask=mask) + cv2.bitwise_and(l_clahe, l_clahe, mask=mask_inv)
+
+    # Unisci i canali L, a, b con la nuova luminanza
+    lab_clahe = cv2.merge((l_combined, a, b))
+
+    # Converti indietro da Lab a BGR
+    img_clahe = cv2.cvtColor(lab_clahe, cv2.COLOR_Lab2BGR)
+
+    # Normalizza l'immagine nell'intervallo [0, 255]
+    #clahe_img = cv2.normalize(clahe_img, None, 0, 255, cv2.NORM_MINMAX)
+    #clahe_img = np.clip(clahe_img, 0, 255)
 
     #resize
     #clahe_img = cv2.resize(clahe_img, (target_size[1], target_size[0]))
     if(target_size != None):
-        clahe_img = cv2.resize(clahe_img, (target_size[1], target_size[0]), interpolation=cv2.INTER_LINEAR)
+        img_clahe = cv2.resize(img_clahe, (target_size[1], target_size[0]), interpolation=cv2.INTER_LINEAR)
 
     if(histogram): 
-        show_histogram(image, "original")
-        show_histogram(clahe_img, "clahe")
+        #show_histogram(image, "original")
+        #show_histogram(clahe_img, "clahe")
+        show_histograms_2(image, img_clahe, "original", "clahe")
     if(show_result):
-        show_difference(image, clahe_img)
+        show_difference(image, img_clahe)
     
-    return clahe_img
+    return img_clahe
 
 
 # Funzione per applicare CLAHE a un'immagine a colori nello spazio Lab
@@ -122,6 +137,34 @@ def show_histogram(img, label):
     plt.hist(img.flatten(),256,[0,256], color = 'r')
     plt.xlim([0,256])
     plt.legend((label,'histogram'), loc = 'upper left')
+    plt.show()
+
+def show_histograms_2(img1, img2, label1, label2):
+    # Create figure with two subplots
+    fig, axes = plt.subplots(1, 2, figsize=(12, 6))
+
+    # First image histogram and CDF
+    hist1, bins1 = np.histogram(img1.flatten(), 256, [0, 256])
+    cdf1 = hist1.cumsum()
+    cdf_normalized1 = cdf1 * float(hist1.max()) / cdf1.max()
+    
+    axes[0].plot(cdf_normalized1, color='b')
+    axes[0].hist(img1.flatten(), 256, [0, 256], color='r')
+    axes[0].set_xlim([0, 256])
+    axes[0].set_title(label1)
+    axes[0].legend(('CDF', 'Histogram'), loc='upper left')
+
+    # Second image histogram and CDF
+    hist2, bins2 = np.histogram(img2.flatten(), 256, [0, 256])
+    cdf2 = hist2.cumsum()
+    cdf_normalized2 = cdf2 * float(hist2.max()) / cdf2.max()
+
+    axes[1].plot(cdf_normalized2, color='b')
+    axes[1].hist(img2.flatten(), 256, [0, 256], color='r')
+    axes[1].set_xlim([0, 256])
+    axes[1].set_title(label2)
+    axes[1].legend(('CDF', 'Histogram'), loc='upper left')
+
     plt.show()
 
 

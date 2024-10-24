@@ -25,7 +25,7 @@ def denoise_channel(channel):
     return channel_denoised
 
 
-def apply_wavelet_denoising(path, target_size, debug=0, show_result=0):
+def apply_wavelet_denoising(path, target_size, debug=0, show_result=0, show_histograms=0):
     # Carica l'immagine a colori (BGR)
     img = cv2.imread(path, cv2.IMREAD_COLOR)
 
@@ -52,6 +52,9 @@ def apply_wavelet_denoising(path, target_size, debug=0, show_result=0):
     # Se show_result è attivato, mostra la differenza tra immagine originale e denoised
     if show_result:
         show_difference(img, img_denoised)
+    
+    if (show_histograms):
+        show_histograms_2(img, img_denoised, "original Image", "Wavelet Image")
 
     return img_denoised
 
@@ -72,6 +75,35 @@ def show_difference(img, denoised):
     plt.imshow(denoised, cmap='gray')
     plt.title('Denoised Image with Wavelet')
     plt.axis('off')
+
+
+def show_histograms_2(img1, img2, label1, label2):
+    # Create figure with two subplots
+    fig, axes = plt.subplots(1, 2, figsize=(12, 6))
+
+    # First image histogram and CDF
+    hist1, bins1 = np.histogram(img1.flatten(), 256, [0, 256])
+    cdf1 = hist1.cumsum()
+    cdf_normalized1 = cdf1 * float(hist1.max()) / cdf1.max()
+    
+    axes[0].plot(cdf_normalized1, color='b')
+    axes[0].hist(img1.flatten(), 256, [0, 256], color='r')
+    axes[0].set_xlim([0, 256])
+    axes[0].set_title(label1)
+    axes[0].legend(('CDF', 'Histogram'), loc='upper left')
+
+    # Second image histogram and CDF
+    hist2, bins2 = np.histogram(img2.flatten(), 256, [0, 256])
+    cdf2 = hist2.cumsum()
+    cdf_normalized2 = cdf2 * float(hist2.max()) / cdf2.max()
+
+    axes[1].plot(cdf_normalized2, color='b')
+    axes[1].hist(img2.flatten(), 256, [0, 256], color='r')
+    axes[1].set_xlim([0, 256])
+    axes[1].set_title(label2)
+    axes[1].legend(('CDF', 'Histogram'), loc='upper left')
+
+    plt.show()
 
 
 # shows histogram and cdf (cumulative distribution function)

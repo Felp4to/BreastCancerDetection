@@ -75,7 +75,7 @@ def Infer(i, M, get_fuzzy_set=False):
 
 
 # fuzzy method
-def FuzzyContrastEnhance(path, target_size=(50, 50, 3), show_result=0):
+def FuzzyContrastEnhance(path, target_size=(50, 50, 3), show_result=0, show_histogram=1):
 
     image = cv2.imread(path)
     image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
@@ -124,7 +124,11 @@ def FuzzyContrastEnhance(path, target_size=(50, 50, 3), show_result=0):
         lab_image = cv2.resize(lab_image, (target_size[1], target_size[0]), interpolation=cv2.INTER_LINEAR)
 
     # show images
-    if(show_result): show_difference(image_rgb, lab_image)
+    if(show_result): 
+        show_difference(image_rgb, lab_image)
+
+    if(show_histogram):
+        show_histograms_2(image_rgb, lab_image, "Original image", "Fuzzy Image")
 
     lab_image = lab_image / 255.0
 
@@ -253,6 +257,35 @@ def plot_io_mapping(means=(64, 96, 128, 160, 192)):
 
     plt.tight_layout()  # Migliora la disposizione dei subplots
     plt.show()  # Mostra il grafico
+
+
+def show_histograms_2(img1, img2, label1, label2):
+    # Create figure with two subplots
+    fig, axes = plt.subplots(1, 2, figsize=(12, 6))
+
+    # First image histogram and CDF
+    hist1, bins1 = np.histogram(img1.flatten(), 256, [0, 256])
+    cdf1 = hist1.cumsum()
+    cdf_normalized1 = cdf1 * float(hist1.max()) / cdf1.max()
+    
+    axes[0].plot(cdf_normalized1, color='b')
+    axes[0].hist(img1.flatten(), 256, [0, 256], color='r')
+    axes[0].set_xlim([0, 256])
+    axes[0].set_title(label1)
+    axes[0].legend(('CDF', 'Histogram'), loc='upper left')
+
+    # Second image histogram and CDF
+    hist2, bins2 = np.histogram(img2.flatten(), 256, [0, 256])
+    cdf2 = hist2.cumsum()
+    cdf_normalized2 = cdf2 * float(hist2.max()) / cdf2.max()
+
+    axes[1].plot(cdf_normalized2, color='b')
+    axes[1].hist(img2.flatten(), 256, [0, 256], color='r')
+    axes[1].set_xlim([0, 256])
+    axes[1].set_title(label2)
+    axes[1].legend(('CDF', 'Histogram'), loc='upper left')
+
+    plt.show()
 
 
 # comparison between original and equalized image
