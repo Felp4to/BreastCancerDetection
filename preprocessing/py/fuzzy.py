@@ -1,10 +1,10 @@
-import math
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 from IPython.display import display, Markdown
 from glob2 import glob
 import time
+import image_metrics as im
 
 
 # Gaussian Function:
@@ -71,11 +71,12 @@ def Infer(i, M, get_fuzzy_set=False):
     # Calculate crisp value of centroid
     if get_fuzzy_set:
         return np.average(x, weights=fuzzy_output), fuzzy_output
+        
     return np.average(x, weights=fuzzy_output)
 
 
 # fuzzy method
-def FuzzyContrastEnhance(path, target_size=(50, 50, 3), show_result=0, show_histogram=1):
+def FuzzyContrastEnhance(path, target_size=(50, 50, 3), show_result=0, show_histogram=0, show_metrics=0):
 
     image = cv2.imread(path)
     image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
@@ -89,8 +90,6 @@ def FuzzyContrastEnhance(path, target_size=(50, 50, 3), show_result=0, show_hist
     # Calculate M value
     M = np.mean(l)
 
-    M = 127                 # !?!?!?!? da vedere questo valore
-
     if M < 128:
         M = 127 - (127 - M)/2
     else:
@@ -98,6 +97,8 @@ def FuzzyContrastEnhance(path, target_size=(50, 50, 3), show_result=0, show_hist
         
     # Precompute the fuzzy transform
     x = list(range(-50,306))
+    #x = list(range(-150,406))
+
     FuzzyTransform = dict(zip(x,[Infer(np.array([i]), M) for i in x]))
     
     # Apply the transform to l channel
@@ -112,23 +113,22 @@ def FuzzyContrastEnhance(path, target_size=(50, 50, 3), show_result=0, show_hist
     # Convert LAB to RGB
     lab_image = cv2.cvtColor(lab, cv2.COLOR_LAB2RGB)
 
-    # resize
-    #lab_image = cv2.resize(lab_image, (target_size[1], target_size[0]))
-
-    # Ottieni le dimensioni dell'immagine
-    #height, width, channels = lab_image.shape
-
-    #resize
-    #clahe_img = cv2.resize(clahe_img, (target_size[1], target_size[0]))
-    if(target_size != None):
-        lab_image = cv2.resize(lab_image, (target_size[1], target_size[0]), interpolation=cv2.INTER_LINEAR)
+    #if(target_size != None):
+        #lab_image = cv2.resize(lab_image, (target_size[1], target_size[0]), interpolation=cv2.INTER_LINEAR)
+       # lab_image = cv2.resize(lab_image, (width, height), interpolation=cv2.INTER_LINEAR)
 
     # show images
     if(show_result): 
         show_difference(image_rgb, lab_image)
 
     if(show_histogram):
-        show_histograms_2(image_rgb, lab_image, "Original image", "Fuzzy Image")
+        show_histograms(image_rgb, lab_image)
+
+    if(show_metrics):
+        psnr, lpips, mse = im.calculate_metrics(image_rgb, lab_image)
+        print("psnr: ", psnr)
+        print("lpips: ", lpips)
+        print("mse: ", mse)
 
     lab_image = lab_image / 255.0
 
@@ -220,7 +220,6 @@ def plot_fuzzy_sets(pixels = [64, 96, 160, 192], M=128):
         plt.show()
 
 
-
 # plots the input-output mapping for different values of M
 def plot_io_mapping(means=(64, 96, 128, 160, 192)):
 
@@ -259,7 +258,7 @@ def plot_io_mapping(means=(64, 96, 128, 160, 192)):
     plt.show()  # Mostra il grafico
 
 
-def show_histograms_2(img1, img2, label1, label2):
+def show_histograms(img1, img2): 
     # Create figure with two subplots
     fig, axes = plt.subplots(1, 2, figsize=(12, 6))
 
@@ -271,7 +270,7 @@ def show_histograms_2(img1, img2, label1, label2):
     axes[0].plot(cdf_normalized1, color='b')
     axes[0].hist(img1.flatten(), 256, [0, 256], color='r')
     axes[0].set_xlim([0, 256])
-    axes[0].set_title(label1)
+    axes[0].set_title("Original image")
     axes[0].legend(('CDF', 'Histogram'), loc='upper left')
 
     # Second image histogram and CDF
@@ -282,7 +281,7 @@ def show_histograms_2(img1, img2, label1, label2):
     axes[1].plot(cdf_normalized2, color='b')
     axes[1].hist(img2.flatten(), 256, [0, 256], color='r')
     axes[1].set_xlim([0, 256])
-    axes[1].set_title(label2)
+    axes[1].set_title("Fuzzy Image")
     axes[1].legend(('CDF', 'Histogram'), loc='upper left')
 
     plt.show()

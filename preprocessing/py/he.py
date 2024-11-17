@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
+import image_metrics as metrics
 
 
 # histogram equalization is a technique in image processing used to enhance the contrast 
@@ -39,6 +40,9 @@ def apply_histogram_equalization(path, target_size, histogram=0, show_result=0):
     
     # Optionally show the original and processed image for comparison
     if show_result:
+        print("Peak: ", metrics.peak_signal_to_noise_ratio(image, final_img_hsv))
+        print("Mse: ", metrics.mean_squared_error(image, final_img_hsv))
+        print("LPIPS: ", metrics.calculate_lpips(image, final_img_hsv))
         show_difference(image, final_img_hsv)
 
     return final_img_hsv

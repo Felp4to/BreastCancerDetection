@@ -1,0 +1,1 @@
+PATH_IMAGES_CANCER = '../images/cancer'

@@ -17,7 +17,9 @@ PATH_IMAGES = '../../dataset/CBIS-DDSM/jpeg'
 PATH_PNGS = '../../dataset/Breast Histopathology Images/IDC_regular_ps50_idx5/**/*.png'
 
 PATH_PARTITIONS_ROOT = os.path.join('', '..', 'partitions')
+PATH_PARTITIONS_COLAB = './Breast Cancer Partitions/'
 
+PATH_MODELS = os.path.join('..', 'models')
 
 
 

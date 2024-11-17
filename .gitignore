@@ -1,4 +1,9 @@
 dataset/
 partitions/
+partitions/clahe
+partitions/fuzzy
+partitions/he
+partitions/no_denoising
+partitions/wavelet
 others/
 images/

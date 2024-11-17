@@ -42,7 +42,7 @@ def apply_equalization_clahe(path, target_size, histogram=0, show_result=1, clip
 
 
 # Funzione per applicare CLAHE a un'immagine a colori nello spazio Lab
-def apply_equalization_clahe_Lab(path, target_size, histogram=0, show_result=1, clipLimit=2.0, tileGridSize=(8, 8), threshold_high_light=255):
+def apply_equalization_clahe_Lab(path, target_size, histogram=0, show_result=0, clipLimit=2.0, tileGridSize=(8, 8), threshold_high_light=255):
 
     # upload gray scale image
     image = cv2.imread(path)
