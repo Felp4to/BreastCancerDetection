@@ -83,7 +83,6 @@ def prep_and_split(preprocessing_method, perc_dataset):
     for img in breast_imgs:
         if img[-5] == '0' :
             non_cancer_imgs.append(img)
-        
         elif img[-5] == '1' :
             cancer_imgs.append(img)
 
@@ -91,8 +90,8 @@ def prep_and_split(preprocessing_method, perc_dataset):
     non_cancer_num = len(non_cancer_imgs)  # No cancer
     cancer_num = len(cancer_imgs)   # Cancer 
     total_img_num = non_cancer_num + cancer_num 
-    print('Number of Images of no cancer: {}' .format(non_cancer_num))   # images of Non cancer
-    print('Number of Images of cancer : {}' .format(cancer_num))   # images of cancer 
+    print('Number of Images of no cancer: {}' .format(non_cancer_num))      # images of Non cancer
+    print('Number of Images of cancer : {}' .format(cancer_num))            # images of cancer 
     print('Total Number of Images : {}' .format(total_img_num))
     
     # Esegui il campionamento delle immagini
@@ -176,7 +175,7 @@ def splitting(X, y, perc_test_val, preprocessing_method):
 
     # Now split the temporary set into validation (10% of total) and test (10% of total)
     X_val, X_test, y_val, y_test = train_test_split(X_temp, y_temp, test_size=0.5, stratify=y_temp, random_state=42)
-
+    
     # Convert the categorical labels in 'y_train', 'y_val', and 'y_test' to one-hot encoded format
     y_train = to_categorical(y_train, 2)
     y_val = to_categorical(y_val, 2)

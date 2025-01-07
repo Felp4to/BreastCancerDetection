@@ -24,7 +24,7 @@ def compute_gradcam(model, folder, preprocessing_method, class_index=None):
     for image_path in image_paths:
         # open and normalize image
         img = normalize_image(image_path)
-
+        
         # define grad model
         grad_model = tf.keras.models.Model(
             inputs=[model.inputs],

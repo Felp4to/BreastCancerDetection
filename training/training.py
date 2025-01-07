@@ -16,7 +16,7 @@ from sklearn.metrics import confusion_matrix, classification_report, accuracy_sc
 
 def load_partitions(preprocessing_method, colab=0):
     path = os.path.join(cns.PATH_PARTITIONS_COLAB if colab else cns.PATH_PARTITIONS_ROOT, preprocessing_method)
-
+    
     # Define paths for all files
     paths = {
         'X_train': os.path.join(path, 'X_train.npy'),
@@ -57,7 +57,7 @@ def training(root, preprocessing_method="no_denoising", epochs = 25, batch_size 
 
     for name, data in datasets.items():
         print(f"{name} shape: {data.shape}")
-        
+    
     # Data augmentation
     datagen = ImageDataGenerator(
         rotation_range=10,
@@ -156,7 +156,7 @@ def valuate_model(model, X_test, y_test, test_datagen):
     test_loss, test_accuracy = model.evaluate(test_datagen)
     print(f"Test Loss: {test_loss}")
     print(f"Test Accuracy: {test_accuracy}")
-
+    
     # prediction
     y_pred = model.predict(X_test)
     y_pred_classes = np.argmax(y_pred, axis=1)     

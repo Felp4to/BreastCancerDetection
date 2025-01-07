@@ -10,22 +10,22 @@ import image_metrics as im
 def low_pass_filter_channel(channel):
     # Calcola la trasformata di Fourier
     f_transform = np.fft.fft2(channel)
-    f_transform_shifted = np.fft.fftshift(f_transform)  # Shift per centrare lo zero
+    f_transform_shifted = np.fft.fftshift(f_transform)      # Shift per centrare lo zero
 
     # Calcola l'energia spettrale (modulo quadrato della trasformata di Fourier)
     energy = np.abs(f_transform_shifted) ** 2
-    total_energy = np.sum(energy)  # Energia totale
+    total_energy = np.sum(energy)                           # Energia totale
 
-    # Calcola il 95% dell'energia totale
+    # Calcola il 80% dell'energia totale
     target_energy = 0.80 * total_energy
 
     # Crea una matrice di zeri per la maschera
     rows, cols = channel.shape
-    crow, ccol = rows // 2, cols // 2  # Centro dell'immagine
+    crow, ccol = rows // 2, cols // 2                       # Centro dell'immagine
 
     # Ordina le frequenze per energia decrescente e calcola il cutoff
-    energy_sorted = np.sort(energy.flatten())  # Vettorizza l'energia
-    cumulative_energy = np.cumsum(energy_sorted)  # Energia cumulativa
+    energy_sorted = np.sort(energy.flatten())               # Vettorizza l'energia
+    cumulative_energy = np.cumsum(energy_sorted)            # Energia cumulativa
     cutoff_value = energy_sorted[np.searchsorted(cumulative_energy, target_energy)]  # Trova il valore di cutoff
 
     # Crea la maschera per il filtro passa-basso
@@ -52,7 +52,7 @@ def low_pass_filter_channel(channel):
 def low_pass_filter_channel_2(channel):
     # Calcola la trasformata di Fourier
     f_transform = np.fft.fft2(channel)
-    f_transform_shifted = np.fft.fftshift(f_transform)  # Shift per centrare lo zero
+    f_transform_shifted = np.fft.fftshift(f_transform)      # Shift per centrare lo zero
 
     # Crea il filtro passa-basso
     rows, cols = channel.shape
@@ -93,7 +93,7 @@ def low_pass_filter_color_image(image):
 # Funzione per applicare il denoising tramite il filtro passa-basso
 def apply_fourier_denoising(path, target_size, histogram=0, show_result=0, show_histogram=0, show_metrics=0):
     image = io.imread(path)
-
+    
     # Applica il filtro passa-basso all'immagine a colori con cutoff automatico
     filtered_image = low_pass_filter_color_image(image)
 
@@ -144,7 +144,6 @@ def show_histograms(img1, img2):
 
     plt.show()
 
-# Funzione per visualizzare l'immagine originale e l'immagine filtrata
 def plot_filtered_image(original_image, filtered_image):
     plt.figure(figsize=(15, 5))
     
